@@ -16,8 +16,7 @@ class LibrarySelector:
         #st.write(f"You selected: {library_name}")
 
         # Return the coordinates of the selected library
-        return library_name#department_libraries_coordinates[library_name]
-    
+        return [library_name, department_libraries_coordinates[library_name]] 
 
 
 def main():

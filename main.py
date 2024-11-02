@@ -12,15 +12,15 @@ def main():
 
     # Render the library selector component
     library_selector = LibrarySelector()
-    #library_coords = library_selector.render()  # This should return the coordinates of the selected library
-    library_name = library_selector.render()
+    library_coords = library_selector.render()[0]  # This should return the coordinates of the selected library
+    library_name = library_selector.render()[1]
     #print(library_name)
     #st.write(library_name)
     location_verify = verify_location(library_name)
     
-    # if library_coords:
-    #     # If a library is selected, render the check-in/out handler
-    #     checkin_handler(library_coords)
+    if library_coords:
+        # If a library is selected, render the check-in/out handler
+        checkin_handler(library_coords)
 
 
 if __name__ == "__main__":
