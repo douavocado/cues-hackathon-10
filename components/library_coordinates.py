@@ -34,5 +34,11 @@ department_libraries_coordinates = {
         "max_lat": 52.2070,
         "min_lon": 0.1205,
         "max_lon": 0.1225
+    },
+    "Robinson College Library": {
+    "min_lat": 52.2020,
+    "max_lat": 52.2070,
+    "min_lon": 0.104,
+    "max_lon": 0.106
     }
 }
