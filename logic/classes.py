@@ -13,7 +13,7 @@ class Player:
         self.player_type=player_type
         self.total_score = total_score
         self.dest_times = {}
-        self.dest_time_history = {} # key is dest.id, value is a list of [time_start, time_added]
+        self.dest_times_history = {} # key is dest.id, value is a list of [time_start, time_added]
     
     def add_destination(self, dest):
         self.dest_times[dest.id] = 0
@@ -35,9 +35,12 @@ class Player:
         self.total_score = score
         
 class HumanPlayer(Player):
-    def __init__(self, total_score=0):
-        super().__init__(player_type="human", total_score=total_score)
-    
+    def __init__(self, id_, total_score=0):
+        super().__init__(id_, player_type="human", total_score=total_score)
+
+class BotPlayer(Player):
+    def __init__(self, id_, total_score=0):
+        super().__init__(id_, player_type="bot", total_score=total_score)
 
 class Destination:
     def __init__(self, id_, position=None, tolerance=0.0005, destype=None, worth=100000):
@@ -97,7 +100,7 @@ class Environment:
             player_id = update_dic["player_id"]
             dest_id = update_dic["destination_id"]
             added_time = update_dic["time_end"] - update_dic["time_start"]
-            self.player_dic[player_id].update_dest_time(self.destination_dic[dest_id], added_time, self.max_hist, self.max_hist_time)
+            self.player_dic[player_id].update_dest_time(self.destination_dic[dest_id], update_dic["time_start"], added_time, self.max_hist, self.max_hist_time)
             self.destination_dic[dest_id].update_player(self.player_dic[player_id])
         
         # now calculate share worths for each library
