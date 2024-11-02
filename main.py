@@ -1,21 +1,18 @@
 import streamlit as st
 from components.library_selector import LibrarySelector
-from components.location_verifier import verify_location
+from components.library_coordinates import department_libraries_coordinates
 from components.checkin_handler import CheckInHandler
 from logic.classes import Environment, Library, BotPlayer
 
-import random
 
 st.set_option('client.showErrorDetails', False)
 
-def getTestEnv():
-    # create test libraries
-    libraries = [Library(0, position=(random.random(), random.random())),
-                Library(1, position=(random.random(), random.random())),
-                Library(2, position=(random.random(), random.random())),
-                Library(3, position=(random.random(), random.random())),
-                Library(4, position=(random.random(), random.random()))
-                ]
+def initEnv():
+    libraries = []
+    for lib_name, lib_coords in department_libraries_coordinates.items():
+        lat = (lib_coords['min_lat'] + lib_coords['max_lat']) / 2
+        lon = (lib_coords['min_lon'] + lib_coords['max_lon']) / 2
+        libraries.append(Library(lib_name, (lat, lon)))
 
     # create test players
     total_players = 1000
@@ -30,9 +27,9 @@ def getTestEnv():
 def main():
     st.title("Cambridge Exchange")
     st.header("Select a Location and Check In/Out")
-
+    
     if "env" not in st.session_state:
-        st.session_state.env = getTestEnv()
+        st.session_state.env = initEnv()
 
     # Initialize library selector and check-in handler only once
     if "library_selector" not in st.session_state:

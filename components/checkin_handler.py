@@ -45,7 +45,7 @@ class CheckInHandler:
                 "time_end": time.time()
             }
 
-           # st.session_state.env.on_update([check_out_data])
+            st.session_state.env.on_update([check_out_data])
 
             st.success(f"Checked out from {library_name} at {time.ctime(check_out_data['time_end'])}. You were there since {time.ctime(check_out_data['time_start'])}")
             self.checked_in = False
