@@ -113,3 +113,31 @@ class Environment:
             for dest_id in self.player_dic[player_id].dest_times.keys():
                 total_score += self.destination_dic[dest_id].share_worth * self.player_dic[player_id].dest_times[dest_id]
             self.player_dic[player_id].update_total_score(total_score)
+    
+    def get_dest_share_prices(self):
+        # returns a dictionary with key the destination id, value is the share price for the destination
+        return {dest.id: dest.share_worth for dest in self.destination_dic.values()}
+    
+    def get_player_scores(self):
+        # returns a dictionary with key player id, values is the player's total score
+        return {player.id: player.total_score for player in self.player_dic.values()}
+    
+    def get_player_score(self, player_id):
+        return self.get_player_scores()[player_id]
+    
+    def get_dest_share_price(self, dest_id):
+        return self.get_dest_share_prices()[dest_id]
+    
+    def get_player(self, player_id):
+        return self.player_dic[player_id]
+    
+    def get_destination(self, dest_id):
+        return self.destination_dic[dest_id]
+    
+    def get_players(self, player_ids):
+        return [self.get_player(id_) for id_ in player_ids]
+    
+    def get_destination_players(self, dest_id):
+        # get all the players that have been at a certain destination
+        ids =  list(self.destination_dic[dest_id].time_stores.keys())
+        return self.get_players(ids)
