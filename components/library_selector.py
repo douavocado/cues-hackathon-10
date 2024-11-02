@@ -13,9 +13,9 @@ class LibrarySelector:
         # Example list of libraries with their coordinates (latitude, longitude)
         department_libraries_coordinates = {
             "Department of Engineering Library": {
-                "min_lat": 52.1990,
+                "min_lat": 52.19000,
                 "max_lat": 52.2020,
-                "min_lon": 0.1240,
+                "min_lon": 0.1200,
                 "max_lon": 0.1290
             },
             "University Library": {

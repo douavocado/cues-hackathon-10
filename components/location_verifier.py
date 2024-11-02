@@ -2,4 +2,4 @@
 
 def verify_location(user_coords, lib_coords):
     
-    return
+    return True
