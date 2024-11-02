@@ -12,6 +12,4 @@ def verify_location(library_name):
     if department_libraries_coordinates[library_name]["min_lat"] <= location["latitude"] <= department_libraries_coordinates[library_name]["max_lat"] and \
         department_libraries_coordinates[library_name]["min_lon"] <= location["longitude"] <= department_libraries_coordinates[library_name]["max_lon"]:
         verif = True
-
-    st.write(verif)
     return verif
