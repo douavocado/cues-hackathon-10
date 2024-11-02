@@ -16,11 +16,4 @@ class LibrarySelector:
         #st.write(f"You selected: {library_name}")
 
         # Return the coordinates of the selected library
-        return [library_name, department_libraries_coordinates[library_name]] 
-
-
-def main():
-    print(department_libraries_coordinates)
-
-if __name__ == "__main__":
-    main()
+        return library_name
