@@ -17,14 +17,13 @@ class CheckInHandler:
         check_out_button = st.button("Check Out")
 
         # Get user's location (mock for now)
-        user_coords = (52.2053, 0.1218)  # Replace with actual GPS retrieval logic
+        # user_coords = (52.2053, 0.1218)  # Replace with actual GPS retrieval logic
 
-        if not verify_location(user_coords, library_name):
-            st.warning("You are too far from the library to check in or out.")
-            return
+        # if not verify_location(library_name):
+            # st.warning("You are too far from the library to check in or out.")
+            # return
 
         if check_in_button:
-            print(st.session_state.checked_in)
             if st.session_state.checked_in == True:
                 st.warning("You have already checked in. You need to check out first.")
                 return
