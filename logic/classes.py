@@ -7,6 +7,8 @@ Created on Sat Nov  2 13:42:06 2024
 """
 import time
 
+from .bot_logic import get_random_update
+
 class Player:
     def __init__(self, id_, player_type=None, total_score=0):
         self.id = id_
@@ -14,36 +16,65 @@ class Player:
         self.total_score = total_score
         self.dest_times = {}
         self.dest_times_history = {} # key is dest.id, value is a list of [time_start, time_added]
+        self.last_end = 0 # last time we were at a library
     
     def add_destination(self, dest):
         self.dest_times[dest.id] = 0
         self.dest_times_history[dest.id] = []
     
-    def update_dest_time(self, dest, time_start, time_added, max_hist, max_hist_time):
+    def update_dest_time(self, dest, time_start, time_added, max_hist, max_hist_time, current_time=None):
         if dest.id not in self.dest_times:
             self.add_destination(dest)
         
-        current_time = time.time()
+        if current_time is None:
+            current_time = time.time()
+        
+        self.last_end = max(self.last_end, time_start+time_added) # setting last end to be accurate
+            
         self.dest_times_history[dest.id].append([time_start, time_added])
         self.dest_times_history[dest.id] = [x for x in self.dest_times_history[dest.id] if current_time - x[0] < max_hist_time]
         self.dest_times_history[dest.id].sort(reverse=True, key=lambda x: x[1])
         self.dest_times_history[dest.id] = self.dest_times_history[dest.id][:max_hist] # only take top max_hist amount of added times
         added_times = [x[1] for x in self.dest_times_history[dest.id]]
+        # clean up empty lists
+        if len(self.dest_times_history[dest.id]) == 0:
+            del self.dest_times_history[dest.id]
+        
         self.dest_times[dest.id] = sum(added_times)
     
     def update_total_score(self, score):
         self.total_score = score
+        
+    def get_type(self):
+        if self.player_type is None:
+            raise NotImplementedError()
+        return self.player_type
+    
+    def __repr__(self):
+        return "Player{}(type:{}, total_score:{})".format(self.id, self.get_type(), self.total_score)
         
 class HumanPlayer(Player):
     def __init__(self, id_, total_score=0):
         super().__init__(id_, player_type="human", total_score=total_score)
 
 class BotPlayer(Player):
-    def __init__(self, id_, total_score=0):
+    def __init__(self, id_, base_location, total_score=0, keenness=5, stay_keenness=5):
         super().__init__(id_, player_type="bot", total_score=total_score)
+        self.base_location = base_location
+        self.keenness = keenness # how frequently we goto library
+        self.stay_keenness = stay_keenness # once we are at library how long we stay
+    
+    def get_update(self, time_end, possible_dst_ids):
+        # get random update
+        update_dic = get_random_update(time_end, possible_dst_ids, self.stay_keenness, last_end=self.last_end)
+        
+        
+        # add our id to the dictionary
+        update_dic["player_id"] = self.id
+        return update_dic
 
 class Destination:
-    def __init__(self, id_, position=None, tolerance=0.0005, destype=None, worth=100000):
+    def __init__(self, id_, position=None, tolerance=0.0005, destype=None, worth=10000):
         self.worth=worth
         self.id = id_
         self.tolerance=tolerance
@@ -66,10 +97,17 @@ class Destination:
     def calculate_worth_per_time(self):
         total_shares = max(self.calculated_total_time(),1)
         self.share_worth = self.worth/total_shares
+    
+    def update_worth(self):
+        raise NotImplementedError()
 
 class Library(Destination):
-    def __init__(self, id_, position=None, tolerance=0.0005, worth=100000):
+    def __init__(self, id_, position=None, tolerance=0.0005, worth=10000):
         super().__init__(id_, position=position, tolerance=tolerance, destype="library", worth=worth)
+    
+    def update_worth(self):
+        # based on total time spent in the last max_hist_time , square rooted
+        self.worth = 10000 + (self.calculated_total_time())**0.5
         
 class Environment:
     def __init__(self, destinations = [], players = [], max_hist_time=4838400, max_hist=10):
@@ -83,6 +121,10 @@ class Environment:
     
     def add_destination(self, dest):
         self.destination_dic[dest.id] = dest
+    
+    def update_dest_worths(self):
+        for dest_id in self.destination_dic.keys():
+            self.destination_dic[dest_id].update_worth()
     
     def on_update(self, update_dics):
         """ 
@@ -100,7 +142,7 @@ class Environment:
             player_id = update_dic["player_id"]
             dest_id = update_dic["destination_id"]
             added_time = update_dic["time_end"] - update_dic["time_start"]
-            self.player_dic[player_id].update_dest_time(self.destination_dic[dest_id], update_dic["time_start"], added_time, self.max_hist, self.max_hist_time)
+            self.player_dic[player_id].update_dest_time(self.destination_dic[dest_id], update_dic["time_start"], added_time, self.max_hist, self.max_hist_time, current_time=update_dic["time_end"])
             self.destination_dic[dest_id].update_player(self.player_dic[player_id])
         
         # now calculate share worths for each library
@@ -141,3 +183,15 @@ class Environment:
         # get all the players that have been at a certain destination
         ids =  list(self.destination_dic[dest_id].time_stores.keys())
         return self.get_players(ids)
+    
+    def get_score_leaders(self, leaders=10):
+        # return ids of score leaders
+        ordered_player_ids = sorted(self.player_dic.keys(), key=lambda x:self.player_dic[x].total_score, reverse=True)
+        top = ordered_player_ids[:leaders]
+        return top
+    
+    def get_score_leader_dic(self, leaders=10):
+        # return ids of score leaders
+        leader_ids = self.get_score_leaders(leaders=leaders)
+        return {id_:self.player_dic[id_].total_score for id_ in leader_ids}
+    
