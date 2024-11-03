@@ -44,6 +44,21 @@ class CheckInHandler:
             self.checked_in = True
             st.success(f'Checked in to {library_name} at {time.ctime(self.start_time)}.')
 
+            # Start centered timer display
+            placeholder = st.empty()
+            while self.checked_in:
+                elapsed_time = int(time.time() - self.start_time)
+                # Display the time in a centered, styled div
+                placeholder.markdown(
+                    f"""
+                    <div style="display: flex; justify-content: center; align-items: center; height: 50px; font-size: 24px; font-weight: bold;">
+                        Time Elapsed: {elapsed_time} seconds
+                    </div>
+                    """,
+                    unsafe_allow_html=True
+                )
+                time.sleep(1)  # Update every second
+
         elif check_out_button:
             if self.checked_in == False:
                 st.warning("You need to check in before checking out.")
