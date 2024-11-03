@@ -6,8 +6,12 @@ Created on Sat Nov  2 13:42:06 2024
 @author: james
 """
 import time
+import numpy as np
 
-from .bot_logic import get_random_update
+from sklearn.linear_model import SGDClassifier
+
+from logic.bot_logic import get_random_update, get_adaptive_update
+from adaptive_model.model import Model
 
 class Player:
     def __init__(self, id_, player_type=None, total_score=0):
@@ -58,15 +62,19 @@ class HumanPlayer(Player):
         super().__init__(id_, player_type="human", total_score=total_score)
 
 class BotPlayer(Player):
-    def __init__(self, id_, base_location, total_score=0, keenness=5, stay_keenness=5):
+    def __init__(self, id_, base_location, adaptive=False, total_score=0, keenness=5, stay_keenness=5):
         super().__init__(id_, player_type="bot", total_score=total_score)
         self.base_location = base_location
         self.keenness = keenness # how frequently we goto library
         self.stay_keenness = stay_keenness # once we are at library how long we stay
+        self.adaptive = adaptive
     
-    def get_update(self, time_end, possible_dst_ids):
+    def get_update(self, time_end, possible_dst_ids, weights=None):
         # get random update
-        update_dic = get_random_update(time_end, possible_dst_ids, self.stay_keenness, last_end=self.last_end)
+        if weights is None or self.adaptive == False:
+            update_dic = get_random_update(time_end, possible_dst_ids, self.stay_keenness, last_end=self.last_end)
+        else:            
+            update_dic = get_adaptive_update(time_end, possible_dst_ids, self.stay_keenness, weights, last_end=self.last_end)
         
         
         # add our id to the dictionary
@@ -74,8 +82,9 @@ class BotPlayer(Player):
         return update_dic
 
 class Destination:
-    def __init__(self, id_, position=None, tolerance=0.0005, destype=None, worth=10000):
-        self.worth=worth
+    def __init__(self, id_, position=None, tolerance=0.0005, destype=None, base_worth=3600):
+        self.worth=base_worth
+        self.base_worth = base_worth
         self.id = id_
         self.tolerance=tolerance
         self.position = position
@@ -102,12 +111,13 @@ class Destination:
         raise NotImplementedError()
 
 class Library(Destination):
-    def __init__(self, id_, position=None, tolerance=0.0005, worth=10000):
-        super().__init__(id_, position=position, tolerance=tolerance, destype="library", worth=worth)
+    def __init__(self, id_, position=None, tolerance=0.0005, base_worth=3600):
+        super().__init__(id_, position=position, tolerance=tolerance, destype="library", base_worth=base_worth)
     
     def update_worth(self):
         # based on total time spent in the last max_hist_time , square rooted
-        self.worth = 10000 + (self.calculated_total_time())**0.5
+        no_users = len(self.time_stores)
+        self.worth = self.base_worth*(no_users+1) + (self.calculated_total_time())**0.5
         
 class Environment:
     def __init__(self, destinations = [], players = [], max_hist_time=4838400, max_hist=10):
@@ -115,6 +125,12 @@ class Environment:
         self.player_dic = {player.id: player for player in players}
         self.max_hist = max_hist
         self.max_hist_time = max_hist_time
+        # Initialize the model
+        model = SGDClassifier(loss="log_loss", learning_rate="adaptive", eta0=0.005) 
+        self.model_class = Model(model)
+        
+        self.prob_history = [] # running track of previous probabilities used
+        self.active_history = [] # running track of binary 0-1 whether human player was active
     
     def add_player(self, player):
         self.player_dic[player.id] = player
@@ -155,6 +171,25 @@ class Environment:
             for dest_id in self.player_dic[player_id].dest_times.keys():
                 total_score += self.destination_dic[dest_id].share_worth * self.player_dic[player_id].dest_times[dest_id]
             self.player_dic[player_id].update_total_score(total_score)
+    
+    def add_data(self, probs, active):
+        self.prob_history.extend(probs)
+        self.prob_history = self.prob_history[-self.max_hist_time:]
+        self.active_history.extend(active)
+        self.active_history = self.active_history[-self.max_hist_time:]
+    
+    def train_full_model(self):
+        X = np.array(self.prob_history)
+        y = np.array(self.active_history)
+        # now adapt model
+        self.model_class.train_full(X,y)
+        
+    def adapt_model(self):
+        # first get data ready
+        X = np.array(self.prob_history)
+        y = np.array(self.active_history)
+        # now adapt model
+        self.model_class.train_partial(X,y)
     
     def get_dest_share_prices(self):
         # returns a dictionary with key the destination id, value is the share price for the destination
