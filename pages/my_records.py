@@ -57,11 +57,6 @@ def display_destination_scores_on_map():
     df["size"] *= 75
     st.map(df, latitude='latitude', longitude='longitude', size='size')
 
-    # Optionally, display scores in the sidebar or below the map
-    # st.sidebar.header("Destination Scores")
-    # for index, row in df.iterrows():
-    #     st.sidebar.write(f"Destination ID: {row['id']}, Score: {row['score']}")
-
 
 # Plot graphs
 
