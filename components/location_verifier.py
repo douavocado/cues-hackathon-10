@@ -4,8 +4,12 @@ from components.library_coordinates import department_libraries_coordinates
 from streamlit_js_eval import get_geolocation
 
 def verify_location(library_name):
-    with st.spinner('Wait for it...'):
-        location = get_geolocation()
+    location = get_geolocation()
+    print(location)
+
+    # FOR TESTING:
+    # location['coords']['latitude'] = 52.202
+    # location['coords']['longitude'] = 0.119
     
     verif = False
     if location is not None:
