@@ -6,10 +6,6 @@ from streamlit_js_eval import get_geolocation
 def verify_location(library_name):
     with st.spinner('Wait for it...'):
         location = get_geolocation()
-
-    # FOR TESTING:
-    # location['coords']['latitude'] = 52.202
-    # location['coords']['longitude'] = 0.119
     
     verif = False
     if location is not None:
