@@ -12,7 +12,7 @@ import numpy as np
 from logic.classes import Environment, HumanPlayer, BotPlayer, Library
 
 
-prop_adaptive = 0.3
+prop_adaptive = 1
 # create test libraries
 libraries = [Library(0, position=(random.random(), random.random()), base_worth=random.randint(1000,10000)),
              Library(1, position=(random.random(), random.random()), base_worth=random.randint(1000,10000)),
@@ -25,7 +25,9 @@ libraries = [Library(0, position=(random.random(), random.random()), base_worth=
 total_players = 100
 players = []
 for id_ in range(total_players):
-    if np.random.random() < prop_adaptive:
+    if id_ == 0:
+        players.append(HumanPlayer(id_, base_location=(random.randint(0,20), random.randint(0,20)), adaptive= True, keenness=random.randint(1,10), stay_keenness=random.randint(1,10)))
+    elif np.random.random() < prop_adaptive:
         players.append(BotPlayer(id_, base_location=(random.randint(0,20), random.randint(0,20)), adaptive= True, keenness=random.randint(1,10), stay_keenness=random.randint(1,10)))
     else:
         players.append(BotPlayer(id_, base_location=(random.randint(0,20), random.randint(0,20)), adaptive= False, keenness=random.randint(1,10), stay_keenness=random.randint(1,10)))
@@ -53,14 +55,15 @@ base_weights = np.ones(len(all_dest_ids))/len(all_dest_ids)
 probs = []
 y = []
 step = 10
+keen_constant = 5000000/step
 trained = False
-for time_step in range(0,10000000, step):
+for time_step in range(0,1000000000, step):
     
     new_updates = []
     weights = base_weights + 0.2*np.random.random(size=(len(all_dest_ids))) # slight perturb
     weights = weights/np.sum(weights)
     for player in players:
-        prob = player.keenness/500000
+        prob = player.keenness/keen_constant
         if random.random() < prob:
             # then player has update
             update = player.get_update(time_step, all_dest_ids, weights=weights)
@@ -79,7 +82,8 @@ for time_step in range(0,10000000, step):
                 base_weights = env.model_class.get_weights(len(all_dest_ids))
     env.on_update(new_updates)
     env.update_dest_worths()
-    
+    # update human keenness
+    players[0].update_keenness(env.get_dest_share_prices())
     # now capture data instances and train adapative model
     # if time_step % 10000 == 0:
     probs.append(weights)

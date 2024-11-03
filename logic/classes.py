@@ -9,6 +9,7 @@ import time
 import numpy as np
 
 from sklearn.linear_model import SGDClassifier
+from sklearn.neural_network import MLPClassifier
 
 from logic.bot_logic import get_random_update, get_adaptive_update
 from adaptive_model.model import Model
@@ -58,8 +59,28 @@ class Player:
         return "Player{}(type:{}, total_score:{})".format(self.id, self.get_type(), self.total_score)
         
 class HumanPlayer(Player):
-    def __init__(self, id_, total_score=0):
+    def __init__(self, id_, base_location, total_score=0, keenness=5, stay_keenness=5, adaptive=False):
         super().__init__(id_, player_type="human", total_score=total_score)
+        self.base_location = base_location
+        self.keenness = keenness # how frequently we goto library
+        self.stay_keenness = stay_keenness # once we are at library how long we stay
+        self.adaptive = adaptive
+    
+    def update_keenness(self, dest_share_prices):
+        # for example in simulation we set this as more likely to goto library
+        # if the share price of library 1 is high compared to others
+        lib1_share_prop= dest_share_prices[0]/sum(dest_share_prices.values())
+        self.keenness = lib1_share_prop**2*600
+        
+    
+    def get_update(self, time_end, possible_dst_ids, weights=None):
+        # get human update
+        update_dic = get_random_update(time_end, possible_dst_ids, self.stay_keenness, last_end=self.last_end)
+        
+        
+        # add our id to the dictionary
+        update_dic["player_id"] = self.id
+        return update_dic
 
 class BotPlayer(Player):
     def __init__(self, id_, base_location, adaptive=False, total_score=0, keenness=5, stay_keenness=5):
@@ -126,7 +147,8 @@ class Environment:
         self.max_hist = max_hist
         self.max_hist_time = max_hist_time
         # Initialize the model
-        model = SGDClassifier(loss="log_loss", learning_rate="adaptive", eta0=0.005) 
+        model = MLPClassifier(hidden_layer_sizes=(4,4,4,4), )
+        #model = SGDClassifier(loss="log_loss", learning_rate="adaptive", eta0=0.005) 
         self.model_class = Model(model)
         
         self.prob_history = [] # running track of previous probabilities used
