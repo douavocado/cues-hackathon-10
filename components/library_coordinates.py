@@ -1,6 +1,6 @@
 department_libraries_coordinates = {
     "Department of Engineering Library": {
-        "min_lat": 52.1990,
+        "min_lat": 52.1900,
         "max_lat": 52.2020,
         "min_lon": 0.1100,
         "max_lon": 0.1290

@@ -11,7 +11,7 @@ import threading
 class CheckInHandler:
     def __init__(self):
         self.checked_in = False
-        self.dest_ids = st.session_state.env.destination_dic.keys()
+        self.dest_ids = list(st.session_state.env.destination_dic.keys())
         self.base_weights = np.ones(len(self.dest_ids))/len(self.dest_ids)
         self.trained_env = False
         self.probs = []
@@ -64,11 +64,6 @@ class CheckInHandler:
             st.success(f"Checked out from {library_name} at {time.ctime(check_out_data['time_end'])}. You were there since {time.ctime(check_out_data['time_start'])}")
             self.checked_in = False
 
-    def call_update_env_periodically(self):
-        while True:
-            self.update_env([])
-            time.sleep(self.update_interval)
-
 
     def update_env(self, check_out_data):
         with self.lock:
@@ -82,16 +77,16 @@ class CheckInHandler:
             for player in players:
                 if player.id == 0:
                     continue
-                prob = player.keenness/500000
+                prob = player.keenness/100
                 if random.random() < prob:
                     # then player has update
-                    update = player.get_update(check_out_data['time_end'], self.dest_ids, weights=weights)
+                    update = player.get_update(time.time(), self.dest_ids, weights=weights)
                     new_updates.append(update)
 
             # human player has update
             if len(check_out_data) > 0:
                 new_updates.append(check_out_data)
-                duration = int((check_out_data["time_end"]-check_out_data["time_start"])/self.update_interval)
+                # duration = int((check_out_data["time_end"]-check_out_data["time_start"])/self.update_interval)
                 self.y[-1] = 1
 
                 # now update model
@@ -102,11 +97,10 @@ class CheckInHandler:
                     st.session_state.env.train_full_model()
                     self.trained_env = True
 
-            st.session_state.env.on_update(new_updates)
-            st.session_state.env.update_dest_worths()
+            if self.trained_env:
+                st.session_state.env.on_update(new_updates)
+                st.session_state.env.update_dest_worths()
 
-            # prepare for next update
-            # self.probs.append(weights)
-            # self.y.append(0)
-            self.base_weights = st.session_state.env.model_class.get_weights(len(self.dest_ids))     
+                # prepare for next update
+                self.base_weights = st.session_state.env.model_class.get_weights(len(self.dest_ids))     
                 
