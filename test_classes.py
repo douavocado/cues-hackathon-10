@@ -57,7 +57,11 @@ y = []
 step = 10
 keen_constant = 5000000/step
 trained = False
+
+DATA_STORE = []
+
 for time_step in range(0,1000000000, step):
+    data_dic = {}
     
     new_updates = []
     weights = base_weights + 0.2*np.random.random(size=(len(all_dest_ids))) # slight perturb
@@ -88,4 +92,13 @@ for time_step in range(0,1000000000, step):
     # if time_step % 10000 == 0:
     probs.append(weights)
     y.append(0)
-        
+    
+    data_dic["time"] = time_step
+    data_dic["player_score"] = players[0].total_score
+    data_dic["player_dest_scores"] = players[0].dest_times
+    data_dic["dest_share_prices"] = env.get_dest_share_prices()
+    data_dic["adaptive_probs"] = {x : base_weights[x] for x in range(len(base_weights))}
+    data_dic["leader_board"] = env.get_score_leader_dic()
+    
+    DATA_STORE.append(data_dic)
+    
