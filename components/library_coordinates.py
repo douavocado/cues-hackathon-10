@@ -40,5 +40,11 @@ department_libraries_coordinates = {
     "max_lat": 52.2070,
     "min_lon": 0.104,
     "max_lon": 0.106
+    },
+    "Test (True)": {
+        "min_lat": 0,
+        "max_lat": 55,
+        "min_lon": 0,
+        "max_lon": 1
     }
 }

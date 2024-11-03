@@ -70,7 +70,10 @@ def display_destination_scores_on_map():
 
 # Plot graphs
 
-st.header("My Library Records")
+
+st.sidebar.title("Records")
+
+st.markdown("<h1 style='text-align: center;'>My Library Records</h1>", unsafe_allow_html=True)
 display_player_scores() 
 
 # Call the function to display the map

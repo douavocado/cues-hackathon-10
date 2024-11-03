@@ -11,8 +11,12 @@ class CheckInHandler:
         return
     
     def render(self, library_name):
-        check_in_button = st.button("Check In")
-        check_out_button = st.button("Check Out")
+        col1, col2 = st.columns([1, 1])
+
+        with col1:
+            check_in_button = st.button("Check In", use_container_width=True)
+        with col2:
+            check_out_button = st.button("Check Out", use_container_width=True)
 
         if verify_location(library_name):
             st.success('Location successfully verified.')

@@ -18,15 +18,26 @@ def initEnv():
     total_players = 1000
     players = []
     for id_ in range(total_players):
-        players.append(BotPlayer(id_))
+        players.append(BotPlayer(id_, True))
         
     # create environment
     env = Environment(destinations=libraries, players=players)
     return env
 
 def main():
-    st.title("Cambridge Exchange")
-    st.header("Select a Location and Check In/Out")
+    pages = {"Home" : [st.Page("main.py", title="Track Time"), st.Page(r"pages\my_records.py", title="My Records")]}
+    pg = st.navigation(pages)
+    pg.run()
+
+    #st.image("images\CUExchange.png", width = 100)
+    # st.markdown("<img src='images\CUExchange.png' style='display:flex'/>", unsafe_allow_html=True)
+    # st.markdown(
+    # "<img src='images\\CUExchange.png' style='max-width: 100%; height: auto;'>",
+    # unsafe_allow_html=True
+    # )
+
+    st.markdown("<h1 style='text-align: center;'>The Cambridge University Exchange</h1>", unsafe_allow_html=True)
+    st.header("Track Time")
     
     if "env" not in st.session_state:
         st.session_state.env = initEnv()
