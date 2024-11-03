@@ -22,7 +22,7 @@ def initEnv():
         libraries.append(Library(lib_name, (lat, lon)))
 
     # create human and test players
-    players = [HumanPlayer(0)]
+    players = [HumanPlayer(0, (0,0))]
     for id_ in range(1, total_players):
         if np.random.random() < prop_adaptive:
             players.append(BotPlayer(id_, base_location=(random.randint(0,20), random.randint(0,20)), adaptive= True, keenness=random.randint(1,10), stay_keenness=random.randint(1,10)))
@@ -50,8 +50,6 @@ def main():
     
     if "env" not in st.session_state:
         st.session_state.env = initEnv()
-        print("efsfsdfd")
-        print(st.session_state.env.player_dic)
 
     # Initialize library selector and check-in handler only once
     if "library_selector" not in st.session_state:

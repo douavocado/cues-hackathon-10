@@ -133,6 +133,7 @@ class Destination:
 
 class Library(Destination):
     def __init__(self, id_, position=None, tolerance=0.0005, base_worth=3600):
+        base_worth = np.random.randint(1000, 5000)
         super().__init__(id_, position=position, tolerance=tolerance, destype="library", base_worth=base_worth)
     
     def update_worth(self):
