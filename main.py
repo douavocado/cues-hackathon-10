@@ -34,47 +34,12 @@ def initEnv():
     env = Environment(destinations=libraries, players=players)
     return env
 
-def call_update_env_periodically(handler):
-    while True:
-        handler.update_env([])
-        print("Update called")
-        time.sleep(handler.update_interval)
 
 def main():
     st.logo("images\CUExLong.png", size="large")
     pages = {"Home" : [st.Page(r"pages\track_time.py", title="Track Time"), st.Page(r"pages\my_records.py", title="My Records"),st.Page(r"pages\store.py", title="Store")]}
     pg = st.navigation(pages)
     pg.run()
-
-    #st.image("images\CUExchange.png", width = 100)
-    # st.markdown("<img src='images\CUExchange.png' style='display:flex'/>", unsafe_allow_html=True)
-    # st.markdown(
-    # "<img src='images\\CUExchange.png' style='max-width: 100%; height: auto;'>",
-    # unsafe_allow_html=True
-    # )
-
-    st.markdown("<h1 style='text-align: center;'>The Cambridge University Exchange</h1>", unsafe_allow_html=True)
-    st.header("Track Time")
-    
-    if "env" not in st.session_state:
-        st.session_state.env = initEnv()
-
-    # Initialize library selector and check-in handler only once
-    if "library_selector" not in st.session_state:
-        st.session_state.library_selector = LibrarySelector()
-    if "checkin_handler" not in st.session_state:
-        st.session_state.checkin_handler = CheckInHandler()
-
-    library_name = st.session_state.library_selector.render()
-    if library_name:
-        st.session_state.checkin_handler.render(library_name)
-
-    # call update env periodically to update bot data in the background
-    if "background_thread" not in st.session_state:
-        background_thread = threading.Thread(target=call_update_env_periodically(st.session_state.checkin_handler), daemon=True)
-        background_thread.start()
-        st.session_state.background_thread = background_thread
-        print("Started background thread")
     
 
 if __name__ == "__main__":

@@ -8,12 +8,13 @@ from logic.classes import Environment, Library, HumanPlayer, BotPlayer
 import numpy as np
 import random
 import threading
+import time
 
 st.set_option('client.showErrorDetails', False)
 
 def initEnv():
     prop_adaptive = 0.3
-    total_players = 100
+    total_players = 20
 
     libraries = []
     for lib_name, lib_coords in department_libraries_coordinates.items():
@@ -32,6 +33,12 @@ def initEnv():
     # create environment
     env = Environment(destinations=libraries, players=players)
     return env
+
+def call_update_env_periodically(handler):
+    while True:
+        handler.update_env([])
+        print("Update called")
+        time.sleep(handler.update_interval)
 
 def main():
     # pages = {"Home" : [st.Page(r"pages\track_time.py", title="Track Time"), st.Page(r"pages\my_records.py", title="My Records"),st.Page(r"pages\store.py", title="Store")]}
@@ -65,7 +72,7 @@ def main():
 
     # call update env periodically to update bot data in the background
     if "background_thread" not in st.session_state and "env" in st.session_state:
-        background_thread = threading.Thread(target=st.session_state.checkin_handler.call_update_env_periodically, daemon=True)
+        background_thread = threading.Thread(target=call_update_env_periodically(st.session_state.checkin_handler), daemon=True)
         background_thread.start()
         st.session_state.background_thread = background_thread
 initEnv()
