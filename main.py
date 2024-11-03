@@ -41,7 +41,8 @@ def call_update_env_periodically(handler):
         time.sleep(handler.update_interval)
 
 def main():
-    pages = {"Home" : [st.Page("main.py", title="Track Time"), st.Page(r"pages\my_records.py", title="My Records")]}
+    st.logo("images\CUExLong.png", size="large")
+    pages = {"Home" : [st.Page(r"pages\track_time.py", title="Track Time"), st.Page(r"pages\my_records.py", title="My Records"),st.Page(r"pages\store.py", title="Store")]}
     pg = st.navigation(pages)
     pg.run()
 
