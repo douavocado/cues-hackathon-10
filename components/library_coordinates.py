@@ -2,7 +2,7 @@ department_libraries_coordinates = {
     "Department of Engineering Library": {
         "min_lat": 52.1990,
         "max_lat": 52.2020,
-        "min_lon": 0.1240,
+        "min_lon": 0.1100,
         "max_lon": 0.1290
     },
     "University Library": {
@@ -40,11 +40,5 @@ department_libraries_coordinates = {
     "max_lat": 52.2070,
     "min_lon": 0.104,
     "max_lon": 0.106
-    },
-    "Test (True)": {
-        "min_lat": 0,
-        "max_lat": 55,
-        "min_lon": 0,
-        "max_lon": 1
     }
 }
