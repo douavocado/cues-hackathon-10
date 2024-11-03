@@ -1,24 +1,33 @@
 import streamlit as st
+
 from components.library_selector import LibrarySelector
 from components.library_coordinates import department_libraries_coordinates
 from components.checkin_handler import CheckInHandler
-from logic.classes import Environment, Library, BotPlayer
+from logic.classes import Environment, Library, HumanPlayer, BotPlayer
 
+import numpy as np
+import random
+import threading
 
 st.set_option('client.showErrorDetails', False)
 
 def initEnv():
+    prop_adaptive = 0.3
+    total_players = 100
+
     libraries = []
     for lib_name, lib_coords in department_libraries_coordinates.items():
         lat = (lib_coords['min_lat'] + lib_coords['max_lat']) / 2
         lon = (lib_coords['min_lon'] + lib_coords['max_lon']) / 2
         libraries.append(Library(lib_name, (lat, lon)))
 
-    # create test players
-    total_players = 1000
-    players = []
-    for id_ in range(total_players):
-        players.append(BotPlayer(id_, True))
+    # create human and test players
+    players = [HumanPlayer(0)]
+    for id_ in range(1, total_players):
+        if np.random.random() < prop_adaptive:
+            players.append(BotPlayer(id_, base_location=(random.randint(0,20), random.randint(0,20)), adaptive= True, keenness=random.randint(1,10), stay_keenness=random.randint(1,10)))
+        else:
+            players.append(BotPlayer(id_, base_location=(random.randint(0,20), random.randint(0,20)), adaptive= False, keenness=random.randint(1,10), stay_keenness=random.randint(1,10)))
         
     # create environment
     env = Environment(destinations=libraries, players=players)
@@ -41,6 +50,8 @@ def main():
     
     if "env" not in st.session_state:
         st.session_state.env = initEnv()
+        print("efsfsdfd")
+        print(st.session_state.env.player_dic)
 
     # Initialize library selector and check-in handler only once
     if "library_selector" not in st.session_state:
@@ -51,6 +62,12 @@ def main():
     library_name = st.session_state.library_selector.render()
     if library_name:
         st.session_state.checkin_handler.render(library_name)
+
+    # call update env periodically to update bot data in the background
+    if "background_thread" not in st.session_state and "env" in st.session_state:
+        background_thread = threading.Thread(target=st.session_state.checkin_handler.call_update_env_periodically, daemon=True)
+        background_thread.start()
+        st.session_state.background_thread = background_thread
     
 
 if __name__ == "__main__":

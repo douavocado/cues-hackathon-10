@@ -53,5 +53,5 @@ class Model:
         
         # Get the optimized weights
         optimized_weights = result.x / np.sum(result.x)  # Normalize to ensure sum to 1
-        print("Optimized Weights:", optimized_weights)
+        print("Optimized Weights:", [round(x.item(),2) for x in optimized_weights])
         return optimized_weights
